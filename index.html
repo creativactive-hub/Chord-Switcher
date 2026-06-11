@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Switcher Pro — Guitar Chord Switching Practice</title>
+    <style>
+        /* Modern CSS variables for styling and dark mode */
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-surface-elevated: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --primary-glow: rgba(59, 130, 246, 0.35);
+            --secondary: #10b981;
+            --secondary-hover: #34d399;
+            --danger: #ef4444;
+            --danger-hover: #f87171;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --transition-speed: 0.2s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        header h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        @media (min-width: 900px) {
+            main {
+                grid-template-columns: 320px 1fr;
+                align-items: start;
+            }
+        }
+
+        /* Card styles */
+        .card {
+            background-color: var(--bg-surface);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            color: #f1f5f9;
+        }
+
+        /* Sidebar Configurations */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--primary-hover);
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 500;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            transition: background var(--transition-speed);
+        }
+
+        .toggle-btn:hover {
+            background-color: rgba(96, 165, 250, 0.1);
+        }
+
+        .checkbox-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+
+        /* Customized checkboxes */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            user-select: none;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.375rem;
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            transition: all var(--transition-speed);
+        }
+
+        .checkbox-label:hover {
+            background-color: var(--bg-surface-elevated);
+            border-color: var(--border-color);
+        }
+
+        .checkbox-label input {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            margin-right: 10px;
+            outline: none;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+            transition: all var(--transition-speed);
+        }
+
+        .checkbox-label input::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em var(--primary-hover);
+            border-radius: 2px;
+        }
+
+        .checkbox-label input:checked {
+            border-color: var(--primary);
+        }
+
+        .checkbox-label input:checked::before {
+            transform: scale(1);
+        }
+
+        /* Interactive Display Dashboard */
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Error Banner */
+        .error-banner {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        /* Chord Panel Styles */
+        .chords-display-panel {
+            text-align: center;
+        }
+
+        .chords-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 600px) {
+            .chords-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .chord-box {
+            background-color: var(--bg-surface-elevated);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 2px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .chord-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+
+        .chord-box.accent-2::before {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+        }
+
+        .chord-box:hover {
+            transform: translateY(-2px);
+            border-color: #64748b;
+        }
+
+        .chord-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .chord-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            word-wrap: break-word;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .chord-caged {
+            display: inline-block;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #38bdf8;
+            background-color: rgba(56, 189, 248, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+        }
+
+        .chord-formula {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.75rem;
+        }
+
+        .chord-formula span {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        /* Generate Pair Action Grid */
+        .action-button-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: #ffffff;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem 2.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px 0 var(--primary-glow);
+            transition: all 0.2s ease-in-out;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-generate:hover {
+            background: linear-gradient(135deg, var(--primary-hover), #2563eb);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px 0 var(--primary-glow);
+        }
+
+        .btn-generate:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px 0 var(--primary-glow);
+        }
+
+        /* Utility widgets panel */
+        .utility-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 600px) {
+            .utility-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Timer UI elements */
+        .timer-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .timer-display-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .timer-ring-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .timer-ring-back {
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 6;
+            fill: none;
+        }
+
+        .timer-ring-front {
+            stroke: var(--secondary);
+            stroke-width: 6;
+            stroke-linecap: round;
+            fill: none;
+            stroke-dasharray: 402.12; /* 2 * PI * r (r=64) */
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 0.3s linear, stroke var(--transition-speed);
+        }
+
+        .timer-ring-front.warning {
+            stroke: var(--danger);
+        }
+
+        .timer-time {
+            font-size: 1.85rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-main);
+            z-index: 10;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Secondary general-purpose button style */
+        .btn-control {
+            background-color: var(--bg-surface-elevated);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            flex: 1;
+            max-width: 100px;
+        }
+
+        .btn-control:hover {
+            background-color: #475569;
+            border-color: #64748b;
+        }
+
+        .btn-control.active-play {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+            color: #0f172a;
+        }
+
+        .btn-control.active-play:hover {
+            background-color: var(--secondary-hover);
+            border-color: var(--secondary-hover);
+        }
+
+        /* Beat Widget elements */
+        .drum-widget {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .drum-controls-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .bpm-slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .bpm-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .bpm-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #38bdf8;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .slider-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 9999px;
+            background: var(--bg-surface-elevated);
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Audio feedback beat indicator light grid */
+        .beat-visualizer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .beat-dot {
+            height: 10px;
+            border-radius: 9999px;
+            background-color: var(--bg-surface-elevated);
+            transition: background-color 0.1s, transform 0.1s;
+            border: 1px solid var(--border-color);
+        }
+
+        .beat-dot.active {
+            background-color: #38bdf8;
+            box-shadow: 0 0 10px #38bdf8;
+            transform: scaleY(1.2);
+        }
+
+        .beat-dot.downbeat.active {
+            background-color: var(--secondary);
+            box-shadow: 0 0 12px var(--secondary);
+        }
+
+        .drum-prompt-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Screen flash utility */
+        .flash-active {
+            animation: flashAnimation 0.5s ease-out 3;
+        }
+
+        @keyframes flashAnimation {
+            0% { background-color: var(--bg-base); }
+            50% { background-color: rgba(239, 68, 68, 0.4); }
+            100% { background-color: var(--bg-base); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utility and footer details */
+        .footer-note {
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-align: center;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar styles for modern custom-looks */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-surface-elevated);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-color);
+        }
+    </style>
+</head>
+<body id="body">
+
+    <header>
+        <h1>Chord Switcher Pro</h1>
+        <p>Master your guitar chord transitions. Filter root notes & chord types, loop synthesized drum beats, track with the practice timer, and generate target transitions instantly.</p>
+    </header>
+
+    <main>
+        <!-- Config Section: Left Sidebar -->
+        <div class="sidebar">
+            <!-- Chord Types Control Card -->
+            <div class="card">
+                <h2>
+                    <span>Chord Types</span>
+                    <button class="toggle-btn" id="chord-toggle-btn" onclick="toggleAll('chords')">Deselect All</button>
+                </h2>
+                <div class="checkbox-grid" id="chord-checkboxes">
+                    <!-- Javascript will dynamically build these based on chordTypes object -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Screen Panel: Right Column -->
+        <div class="dashboard">
+            <!-- Dynamic Error Banner -->
+            <div class="error-banner" id="error-banner">
+                Please select at least one chord type.
+            </div>
+
+            <!-- Main Interactive Display of Random Chords -->
+            <div class="card chords-display-panel">
+                <h2>Chord Switch Goal</h2>
+                
+                <div class="chords-container">
+                    <!-- Chord 1 Card -->
+                    <div class="chord-box" id="chord-box-1">
+                        <div class="chord-label">Chord 1</div>
+                        <div class="chord-title" id="chord-1-title">E Major</div>
+                        <div class="chord-formula" id="chord-1-formula">Notes: <span>E - G# - B</span></div>
+                    </div>
+
+                    <!-- Chord 2 Card -->
+                    <div class="chord-box accent-2" id="chord-box-2">
+                        <div class="chord-label">Chord 2</div>
+                        <div class="chord-title" id="chord-2-title">A Minor</div>
+                        <div class="chord-formula" id="chord-2-formula">Notes: <span>A - C - E</span></div>
+                    </div>
+                </div>
+
+                <div class="action-button-container">
+                    <button class="btn-generate" id="btn-generate-pair" onclick="generateAndDisplayPair()">
+                        Generate Pair
+                    </button>
+                </div>
+            </div>
+
+            <!-- Practice Utils: Timer and Loop Drum Engine -->
+            <div class="utility-grid">
+                
+                <!-- Timer Card -->
+                <div class="card timer-widget">
+                    <h2>Practice Session Timer</h2>
+                    <div class="timer-display-container">
+                        <svg class="timer-ring-svg">
+                            <circle class="timer-ring-back" cx="70" cy="70" r="64"></circle>
+                            <circle class="timer-ring-front" id="timer-progress-ring" cx="70" cy="70" r="64"></circle>
+                        </svg>
+                        <div class="timer-time" id="timer-display">05:00</div>
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn-control" id="btn-timer-start" onclick="toggleTimer()">Start</button>
+                        <button class="btn-control" onclick="resetTimer()">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Web Audio API Drum Widget -->
+                <div class="card drum-widget">
+                    <h2>Drum Metronome Beat</h2>
+                    
+                    <div class="drum-controls-container">
+                        <div class="bpm-slider-container">
+                            <div class="bpm-label-row">
+                                <span>Tempo (BPM)</span>
+                                <span class="bpm-value" id="bpm-display">80</span>
+                            </div>
+                            <div class="slider-wrapper">
+                                <input type="range" id="bpm-slider" min="40" max="200" value="80" oninput="updateBPM(this.value)">
+                            </div>
+                        </div>
+
+                        <!-- Visual Grid of loop progress -->
+                        <div>
+                            <div class="beat-visualizer">
+                                <div class="beat-dot downbeat" id="dot-0"></div>
+                                <div class="beat-dot" id="dot-1"></div>
+                                <div class="beat-dot" id="dot-2"></div>
+                                <div class="beat-dot" id="dot-3"></div>
+                            </div>
+                            <p class="drum-prompt-label">Switch chords on every red downbeat (1)</p>
+                        </div>
+                    </div>
+
+                    <div class="timer-controls">
+                        <button class="btn-control" id="btn-drum-play" onclick="toggleDrumBeat()">Play Loop</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer-note">
+        Chord Switcher Pro generates physically playable references based on CAGED fingerings. Practice your transitions slowly alongside the synthesized kick-snare pattern.
+    </footer>
+
+    <script>
+        // 12 root notes in standardized format
+        const ROOT_NOTES = [
+            "A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"
+        ];
+
+        // Chord types with formula representations to supply rich musical hints in UI
+        const CHORD_TYPES = {
+            "Major": { name: "Major", intervals: "1 - 3 - 5", short: "" },
+            "Minor": { name: "Minor", intervals: "1 - b3 - 5", short: "m" },
+            "Dominant 7th": { name: "Dominant 7th", intervals: "1 - 3 - 5 - b7", short: "7" },
+            "Major 7th": { name: "Major 7th", intervals: "1 - 3 - 5 - 7", short: "maj7" },
+            "Minor 7th": { name: "Minor 7th", intervals: "1 - b3 - 5 - b7", short: "m7" },
+            "Suspended 2nd (sus2)": { name: "Suspended 2nd (sus2)", intervals: "1 - 2 - 5", short: "sus2" },
+            "Suspended 4th (sus4)": { name: "Suspended 4th (sus4)", intervals: "1 - 4 - 5", short: "sus4" },
+            "Diminished": { name: "Diminished", intervals: "1 - b3 - b5", short: "dim" },
+            "Augmented": { name: "Augmented", intervals: "1 - 3 - #5", short: "aug" },
+            "Power (5th)": { name: "Power (5th)", intervals: "1 - 5 (No 3rd)", short: "5" }
+        };
+
+        // UI state management 
+        let activeChordTypes = new Set(Object.keys(CHORD_TYPES));
+
+        // Core dynamic generation state variables
+        let generatedChordsPool = [];
+
+        // Timer related state
+        const INITIAL_TIMER_SECONDS = 300; // 5 minutes
+        let timerSecondsRemaining = INITIAL_TIMER_SECONDS;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        // Web Audio synthesized drum engine
+        let audioCtx = null;
+        let isDrumPlaying = false;
+        let bpm = 80;
+        let nextBeatTime = 0.0;
+        let currentBeat = 0; // 0, 1, 2, 3
+        let drumSchedulerInterval = null;
+        const lookahead = 25.0; // milliseconds
+        const scheduleAheadTime = 0.1; // seconds
+
+        // Initialize checkboxes on windows load
+        window.onload = function() {
+            buildSelectionUI();
+            updateChordPool();
+            generateAndDisplayPair();
+        };
+
+        // Render controls to DOM
+        function buildSelectionUI() {
+            // Build Chord checkboxes
+            const chordContainer = document.getElementById("chord-checkboxes");
+            chordContainer.innerHTML = "";
+            Object.keys(CHORD_TYPES).forEach(type => {
+                const label = document.createElement("label");
+                label.className = "checkbox-label";
+                
+                const input = document.createElement("input");
+                input.type = "checkbox";
+                input.checked = true;
+                input.value = type;
+                input.addEventListener("change", (e) => {
+                    if (e.target.checked) {
+                        activeChordTypes.add(type);
+                    } else {
+                        activeChordTypes.delete(type);
+                    }
+                    updateChordPool();
+                    updateToggleButtonsText();
+                });
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(type));
+                chordContainer.appendChild(label);
+            });
+        }
+
+        // Action: Select All / Deselect All
+        function toggleAll(category) {
+            if (category === 'chords') {
+                const container = document.getElementById("chord-checkboxes");
+                const checkboxes = container.querySelectorAll("input[type='checkbox']");
+                const btn = document.getElementById("chord-toggle-btn");
+                const shouldSelectAll = btn.textContent === "Select All";
+
+                checkboxes.forEach(cb => {
+                    cb.checked = shouldSelectAll;
+                    if (shouldSelectAll) {
+                        activeChordTypes.add(cb.value);
+                    } else {
+                        activeChordTypes.delete(cb.value);
+                    }
+                });
+                btn.textContent = shouldSelectAll ? "Deselect All" : "Select All";
+            }
+            updateChordPool();
+        }
+
+        function updateToggleButtonsText() {
+            // Chord Types
+            const chordBtn = document.getElementById("chord-toggle-btn");
+            if (activeChordTypes.size === 0) {
+                chordBtn.textContent = "Select All";
+            } else if (activeChordTypes.size === Object.keys(CHORD_TYPES).length) {
+                chordBtn.textContent = "Deselect All";
+            } else {
+                chordBtn.textContent = "Deselect All";
+            }
+        }
+
+        // Recalculates matching chords pool from settings
+        function updateChordPool() {
+            generatedChordsPool = [];
+            const errorBanner = document.getElementById("error-banner");
+
+            // Combine selections
+            ROOT_NOTES.forEach(root => {
+                activeChordTypes.forEach(type => {
+                    generatedChordsPool.push({
+                        root: root,
+                        type: type,
+                        intervals: CHORD_TYPES[type].intervals,
+                        short: CHORD_TYPES[type].short
+                    });
+                });
+            });
+
+            if (generatedChordsPool.length < 2) {
+                errorBanner.style.display = "block";
+                document.getElementById("btn-generate-pair").disabled = true;
+                document.getElementById("btn-generate-pair").style.opacity = 0.5;
+            } else {
+                errorBanner.style.display = "none";
+                document.getElementById("btn-generate-pair").disabled = false;
+                document.getElementById("btn-generate-pair").style.opacity = 1;
+            }
+        }
+
+        // Generates the random pair
+        function generateAndDisplayPair() {
+            if (generatedChordsPool.length < 2) {
+                return;
+            }
+
+            // Select index 1
+            const idx1 = Math.floor(Math.random() * generatedChordsPool.length);
+            let idx2 = Math.floor(Math.random() * generatedChordsPool.length);
+            
+            // Guarantee distinct items
+            while (idx1 === idx2) {
+                idx2 = Math.floor(Math.random() * generatedChordsPool.length);
+            }
+
+            const chord1 = generatedChordsPool[idx1];
+            const chord2 = generatedChordsPool[idx2];
+
+            // Render Chord 1
+            document.getElementById("chord-1-title").textContent = chord1.root + " " + chord1.short;
+            document.getElementById("chord-1-formula").innerHTML = `${chord1.type} <br>Intervals: <span>${chord1.intervals}</span>`;
+
+            // Render Chord 2
+            document.getElementById("chord-2-title").textContent = chord2.root + " " + chord2.short;
+            document.getElementById("chord-2-formula").innerHTML = `${chord2.type} <br>Intervals: <span>${chord2.intervals}</span>`;
+        }
+
+
+        /* ==================== PRACTICE TIMER LOGIC ==================== */
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            // Audio setup in case it needs activation context
+            initAudioContext();
+            
+            isTimerRunning = true;
+            document.getElementById("btn-timer-start").textContent = "Pause";
+            document.getElementById("btn-timer-start").classList.add("active-play");
+
+            timerInterval = setInterval(() => {
+                if (timerSecondsRemaining > 0) {
+                    timerSecondsRemaining--;
+                    updateTimerUI();
+                } else {
+                    handleTimerEnd();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isTimerRunning = false;
+            document.getElementById("btn-timer-start").textContent = "Start";
+            document.getElementById("btn-timer-start").classList.remove("active-play");
+            clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSecondsRemaining = INITIAL_TIMER_SECONDS;
+            updateTimerUI();
+            
+            // Reset circular UI states
+            const ring = document.getElementById("timer-progress-ring");
+            ring.classList.remove("warning");
+        }
+
+        function updateTimerUI() {
+            const minutes = Math.floor(timerSecondsRemaining / 60);
+            const seconds = timerSecondsRemaining % 60;
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById("timer-display").textContent = formattedTime;
+
+            // Update Progress Circle SVG stroke-dashoffset
+            const ring = document.getElementById("timer-progress-ring");
+            const maxOffset = 402.12; // 2 * PI * r (r=64)
+            const percentRemaining = timerSecondsRemaining / INITIAL_TIMER_SECONDS;
+            const offset = maxOffset * (1 - percentRemaining);
+            ring.style.strokeDashoffset = offset;
+
+            // Visual warnings at intervals
+            if (timerSecondsRemaining <= 10) {
+                ring.classList.add("warning");
+            } else {
+                ring.classList.remove("warning");
+            }
+        }
+
+        function handleTimerEnd() {
+            pauseTimer();
+            
+            // Screen flash effect
+            const body = document.getElementById("body");
+            body.classList.add("flash-active");
+            setTimeout(() => {
+                body.classList.remove("flash-active");
+            }, 1600);
+
+            // Synth Audio Beep Notification
+            playSoftAlarmBeep();
+        }
+
+        // Web Audio alert signal generator
+        function playSoftAlarmBeep() {
+            initAudioContext();
+            if (!audioCtx) return;
+
+            try {
+                const now = audioCtx.currentTime;
+                // Create a minor/major chord style friendly beep sequence
+                const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C major arpeggio
+                
+                frequencies.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(freq, now + (idx * 0.12));
+                    
+                    gain.gain.setValueAtTime(0.15, now + (idx * 0.12));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.6);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(now + (idx * 0.12));
+                    osc.stop(now + (idx * 0.12) + 0.6);
+                });
+            } catch (e) {
+                console.error("Audio playback error:", e);
+            }
+        }
+
+
+        /* ==================== SYNTHESIZED DRUM ENGINE ==================== */
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function updateBPM(val) {
+            bpm = parseInt(val);
+            document.getElementById("bpm-display").textContent = bpm;
+        }
+
+        function toggleDrumBeat() {
+            initAudioContext();
+            if (isDrumPlaying) {
+                stopDrumBeat();
+            } else {
+                startDrumBeat();
+            }
+        }
+
+        function startDrumBeat() {
+            isDrumPlaying = true;
+            document.getElementById("btn-drum-play").textContent = "Stop Beat";
+            document.getElementById("btn-drum-play").classList.add("active-play");
+
+            currentBeat = 0;
+            nextBeatTime = audioCtx.currentTime;
+            
+            // Loop scheduler interval running every ~25ms
+            drumSchedulerInterval = setInterval(() => {
+                scheduler();
+            }, lookahead);
+        }
+
+        function stopDrumBeat() {
+            isDrumPlaying = false;
+            document.getElementById("btn-drum-play").textContent = "Play Loop";
+            document.getElementById("btn-drum-play").classList.remove("active-play");
+
+            clearInterval(drumSchedulerInterval);
+            
+            // Clean up visual light grid
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`dot-${i}`).classList.remove("active");
+            }
+        }
+
+        // Beat timing scheduler pipeline
+        function scheduler() {
+            while (nextBeatTime < audioCtx.currentTime + scheduleAheadTime) {
+                schedulePlayEvent(currentBeat, nextBeatTime);
+                incrementBeat();
+            }
+        }
+
+        function incrementBeat() {
+            const secondsPerBeat = 60.0 / bpm;
+            nextBeatTime += secondsPerBeat;
+            currentBeat = (currentBeat + 1) % 4; // 4/4 meter loops
+        }
+
+        // Web Audio synthesizer play events
+        function schedulePlayEvent(beat, time) {
+            // Update visual elements on matching animation frame
+            const delayInMs = Math.max(0, (time - audioCtx.currentTime) * 1000);
+            setTimeout(() => {
+                if (!isDrumPlaying) return;
+                updateVisualBeatIndicator(beat);
+            }, delayInMs);
+
+            // Audio Synthesis: Kick drum plays on 1 and 3 (beat 0 and 2)
+            if (beat === 0 || beat === 2) {
+                synthesizeKick(time);
+            }
+            // Audio Synthesis: Snare drum plays on 2 and 4 (beat 1 and 3)
+            if (beat === 1 || beat === 3) {
+                synthesizeSnare(time);
+            }
+        }
+
+        function updateVisualBeatIndicator(beat) {
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i === beat) {
+                    dot.classList.add("active");
+                } else {
+                    dot.classList.remove("active");
+                }
+            }
+        }
+
+        // Synthesize powerful Kick Drum using frequency sweep
+        function synthesizeKick(time) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            // Starting punch frequency sweeps down
+            osc.frequency.setValueAtTime(150, time);
+            osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.3);
+
+            // Smooth fast decay on gain
+            gain.gain.setValueAtTime(1.0, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+
+            osc.start(time);
+            osc.stop(time + 0.3);
+        }
+
+        // Synthesize sharp Snare Drum using bandpass-filtered noise
+        function synthesizeSnare(time) {
+            // Create Noise Buffer
+            const bufferSize = audioCtx.sampleRate * 0.2; // 200ms
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = buffer;
+
+            // Apply custom snare bandpass filter to shape white noise
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = "bandpass";
+            filter.frequency.value = 1000;
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.4, time);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+
+            // Snap/fundamental tone beneath the snare snap
+            const snapOsc = audioCtx.createOscillator();
+            const snapGain = audioCtx.createGain();
+            
+            snapOsc.type = "triangle";
+            snapOsc.frequency.setValueAtTime(180, time);
+            snapGain.gain.setValueAtTime(0.2, time);
+            snapGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+
+            // Route noise
+            noiseNode.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+
+            // Route base snap tone
+            snapOsc.connect(snapGain);
+            snapGain.connect(audioCtx.destination);
+
+            noiseNode.start(time);
+            noiseNode.stop(time + 0.2);
+
+            snapOsc.start(time);
+            snapOsc.stop(time + 0.1);
+        }
+    </script>
+</body>
+</html>
